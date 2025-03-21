@@ -12,6 +12,14 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { AlertTriangle, Zap, BatteryLow } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import dynamic from "next/dynamic";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 // Import map component with no SSR
 const MapComponent = dynamic(() => import("@/components/map-component"), {
@@ -42,10 +50,12 @@ interface OutageReporterProps {
 
 export default function OutageReporter({ reports, setReports }: OutageReporterProps) {
   const [position, setPosition] = useState<{ lat: number; lng: number } | null>(null);
-  const [isFetchingLocation, setIsFetchingLocation] = useState(true); // Add loading state
+  const [isFetchingLocation, setIsFetchingLocation] = useState(true);
   const [address, setAddress] = useState("");
   const [severity, setSeverity] = useState<"critical" | "major" | "minor">("major");
   const [description, setDescription] = useState("");
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { toast } = useToast();
   const pathname = usePathname();
 
@@ -69,9 +79,10 @@ export default function OutageReporter({ reports, setReports }: OutageReporterPr
             title: "Geolocation Failed",
             description: "Unable to fetch your location. Using default location instead.",
             variant: "destructive",
+            duration: 5000,
           });
         },
-        { timeout: 10000, maximumAge: 0 } // Add timeout and disable cache
+        { timeout: 10000, maximumAge: 0 }
       );
     } else {
       setPosition({ lat: 40.7128, lng: -74.006 });
@@ -80,6 +91,7 @@ export default function OutageReporter({ reports, setReports }: OutageReporterPr
         title: "Geolocation Not Supported",
         description: "Geolocation is not supported by your browser. Using default location instead.",
         variant: "destructive",
+        duration: 5000,
       });
     }
   };
@@ -100,20 +112,20 @@ export default function OutageReporter({ reports, setReports }: OutageReporterPr
     e.preventDefault();
 
     if (!position) {
-      toast({
-        title: "Location required",
-        description: "Please select a location on the map",
-        variant: "destructive",
-      });
+      setErrorMessage("Please select a location on the map.");
+      setIsDialogOpen(true);
       return;
     }
 
-    if (!address) {
-      toast({
-        title: "Address required",
-        description: "Please provide your address",
-        variant: "destructive",
-      });
+    if (!address.trim()) {
+      setErrorMessage("The address field cannot be empty. Please provide your address.");
+      setIsDialogOpen(true);
+      return;
+    }
+
+    if (!description.trim()) {
+      setErrorMessage("The description field cannot be empty. Please provide a description of the outage.");
+      setIsDialogOpen(true);
       return;
     }
 
@@ -140,8 +152,10 @@ export default function OutageReporter({ reports, setReports }: OutageReporterPr
     fetchUserLocation();
 
     toast({
-      title: "Outage reported",
-      description: "Your outage report has been submitted successfully",
+      title: "Outage Reported",
+      description: "Your outage report has been submitted successfully.",
+      variant: "default",
+      duration: 5000,
     });
   };
 
@@ -149,7 +163,6 @@ export default function OutageReporter({ reports, setReports }: OutageReporterPr
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Report a Power Outage</CardTitle>
           <CardDescription>Click on the map to pinpoint your location, then fill out the form below.</CardDescription>
         </CardHeader>
         <CardContent>
@@ -165,7 +178,7 @@ export default function OutageReporter({ reports, setReports }: OutageReporterPr
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="address">Address</Label>
+              <Label htmlFor="address">Address (Required)</Label>
               <Input
                 id="address"
                 placeholder="Enter your address"
@@ -206,7 +219,7 @@ export default function OutageReporter({ reports, setReports }: OutageReporterPr
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
+              <Label htmlFor="description">Description (Required)</Label>
               <Textarea
                 id="description"
                 placeholder="Provide any additional details about the outage"
@@ -223,6 +236,19 @@ export default function OutageReporter({ reports, setReports }: OutageReporterPr
           </Button>
         </CardFooter>
       </Card>
+
+      {/* Dialog for error messages */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Error</DialogTitle>
+            <DialogDescription>{errorMessage}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button onClick={() => setIsDialogOpen(false)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

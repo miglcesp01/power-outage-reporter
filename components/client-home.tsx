@@ -22,6 +22,7 @@ export default function ClientHome() {
     <main className="container mx-auto px-4 py-8">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
+        <h2 className="text-xl font-semibold mb-4">Recent Outage Reports</h2>
           <OutageReporter reports={reports} setReports={setReports} />
         </div>
         <div>

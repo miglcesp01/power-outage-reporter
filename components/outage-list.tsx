@@ -1,114 +1,71 @@
-"use client";
-
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { AlertTriangle, Zap, BatteryLow, Clock, MapPin, Eye } from "lucide-react";
-import type { OutageReport } from "./outage-reporter";
+import { AlertTriangle, Zap, BatteryLow } from "lucide-react";
+import type { OutageReport } from "@/components/outage-reporter";
+import { Label } from "./ui/label";
 
 interface OutageListProps {
   reports: OutageReport[];
 }
 
 export default function OutageList({ reports }: OutageListProps) {
-  if (reports.length === 0) {
-    return (
-      <Card>
-        <CardContent className="pt-6">
-          <p className="text-center text-muted-foreground">No outages reported yet.</p>
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
     <div className="space-y-4">
-      {reports.map((report) => (
-        <OutageCard key={report.id} report={report} />
-      ))}
+      {reports.length > 0 ? (
+        <div
+          className="max-h-[893px] overflow-y-auto space-y-4 pr-2"
+          style={{
+            scrollbarWidth: "thin", // For Firefox
+            scrollbarColor: "rgba(0, 0, 0, 0.2) transparent", // For Firefox
+          }}
+        >
+          {reports.map((report) => (
+            <Card key={report.id} className="min-h-[140px] flex flex-col">
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle className="text-lg font-semibold">
+                  {report.severity === "critical" && (
+                    <span className="flex items-center gap-2 text-red-500">
+                      <AlertTriangle className="h-5 w-5" /> Critical Outage
+                    </span>
+                  )}
+                  {report.severity === "major" && (
+                    <span className="flex items-center gap-2 text-amber-500">
+                      <Zap className="h-5 w-5" /> Major Outage
+                    </span>
+                  )}
+                  {report.severity === "minor" && (
+                    <span className="flex items-center gap-2 text-blue-500">
+                      <BatteryLow className="h-5 w-5" /> Minor Outage
+                    </span>
+                  )}
+                </CardTitle>
+                <Badge>{report.status}</Badge>
+              </CardHeader>
+              <CardContent className="flex-1">
+                <Label htmlFor="address">Address</Label>
+                <p className="text-sm text-muted-foreground truncate">{report.address}</p>
+                <Label htmlFor="description">Description</Label>
+                <p className="text-sm text-muted-foreground truncate">
+                  {report.description || "No description provided"}
+                </p>
+                <Label htmlFor="date">Date</Label>
+                <p className="text-sm text-muted-foreground truncate">
+                  {new Date(report.timestamp).toLocaleString()}
+                </p>
+                <Link
+                  href={`/report/${report.id}`}
+                  className="text-sm text-blue-500 hover:underline mt-2 inline-block"
+                >
+                  View Details
+                </Link>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <div className="text-sm text-muted-foreground">No reports available.</div>
+      )}
     </div>
-  );
-}
-
-function OutageCard({ report }: { report: OutageReport }) {
-  const getSeverityIcon = (severity: string) => {
-    switch (severity) {
-      case "critical":
-        return <AlertTriangle className="h-4 w-4 text-red-500" />;
-      case "major":
-        return <Zap className="h-4 w-4 text-amber-500" />;
-      case "minor":
-        return <BatteryLow className="h-4 w-4 text-blue-500" />;
-      default:
-        return null;
-    }
-  };
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "reported":
-        return (
-          <Badge variant="outline" className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100">
-            Reported
-          </Badge>
-        );
-      case "investigating":
-        return (
-          <Badge variant="outline" className="bg-blue-100 text-blue-800 hover:bg-blue-100">
-            Investigating
-          </Badge>
-        );
-      case "resolved":
-        return (
-          <Badge variant="outline" className="bg-green-100 text-green-800 hover:bg-green-100">
-            Resolved
-          </Badge>
-        );
-      default:
-        return null;
-    }
-  };
-
-  const formatDate = (timestamp: number) => {
-    return new Date(timestamp).toLocaleString();
-  };
-
-  return (
-    <Card>
-      <CardHeader className="pb-2">
-        <div className="flex justify-between items-start">
-          <div className="flex items-center gap-1">
-            {getSeverityIcon(report.severity)}
-            <CardTitle className="text-base capitalize">{report.severity} Outage</CardTitle>
-          </div>
-          {getStatusBadge(report.status)}
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-2">
-          <div className="flex items-start gap-2">
-            <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
-            <p className="text-sm">{report.address}</p>
-          </div>
-
-          {report.description && <p className="text-sm text-muted-foreground">{report.description}</p>}
-
-          <div className="flex items-center gap-2">
-            <Clock className="h-3 w-3 text-muted-foreground" />
-            <p className="text-xs text-muted-foreground">{formatDate(report.timestamp)}</p>
-          </div>
-
-          <div className="pt-2">
-            <Link href={`/report/${report.id}`}>
-              <Button variant="outline" size="sm" className="w-full">
-                <Eye className="h-4 w-4 mr-2" />
-                View Details
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
   );
 }

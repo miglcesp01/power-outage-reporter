@@ -95,3 +95,19 @@
   width: 100% !important;
 }
 
+.max-h-\[893px\]::-webkit-scrollbar {
+  width: 8px;
+}
+
+.max-h-\[893px\]::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.max-h-\[893px\]::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+.max-h-\[893px\]::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.4);
+}
