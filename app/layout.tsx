@@ -42,7 +42,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <header className="border-b border-border py-4">
-            <div className="container mx-auto px-6 flex items-center justify-between">
+            <div className="container mx-auto px-4 flex items-center justify-between">
               <h1 className="text-2xl font-bold">Power Outage Reporter</h1>
               <nav className="flex items-center space-x-4">
                 <ThemeToggle />
